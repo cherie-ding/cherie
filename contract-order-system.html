@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>合同转下单流程系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#0FC6C2',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            info: '#86909C',
+            light: '#F2F3F5',
+            dark: '#1D2129',
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .transition-height {
+        transition: max-height 0.3s ease-in-out;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
+  <!-- 顶部导航栏 -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center py-4">
+        <div class="flex items-center space-x-2">
+          <i class="fa fa-file-text-o text-primary text-2xl"></i>
+          <h1 class="text-xl font-bold text-primary">合同转下单流程系统</h1>
+        </div>
+        
+        <nav class="hidden md:flex items-center space-x-8">
+          <a href="#" class="text-primary font-medium hover:text-primary/80 transition-colors">首页</a>
+          <a href="#" class="text-gray-600 font-medium hover:text-primary transition-colors">合同管理</a>
+          <a href="#" class="text-gray-600 font-medium hover:text-primary transition-colors">订单管理</a>
+          <a href="#" class="text-gray-600 font-medium hover:text-primary transition-colors">统计分析</a>
+          <a href="#" class="text-gray-600 font-medium hover:text-primary transition-colors">系统设置</a>
+        </nav>
+        
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <input type="text" placeholder="搜索..." class="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all w-40 md:w-60">
+            <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+          
+          <div class="relative">
+            <button class="relative text-gray-600 hover:text-primary transition-colors">
+              <i class="fa fa-bell text-xl"></i>
+              <span class="absolute -top-1 -right-1 bg-danger text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
+            </button>
+          </div>
+          
+          <div class="flex items-center space-x-2 cursor-pointer group">
+            <img src="https://picsum.photos/200/200?random=1" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm">
+            <span class="hidden md:inline-block text-sm font-medium">管理员</span>
+            <i class="fa fa-caret-down text-gray-400 group-hover:text-primary transition-colors"></i>
+          </div>
+          
+          <button class="md:hidden text-gray-600 hover:text-primary transition-colors">
+            <i class="fa fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-grow container mx-auto px-4 py-6">
+    <!-- 页面标题和操作按钮 -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div>
+        <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800">合同转下单管理</h2>
+        <p class="text-gray-500 mt-1">管理从合同签订到订单生成的全流程</p>
+      </div>
+      
+      <div class="mt-4 md:mt-0 flex space-x-3">
+        <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2">
+          <i class="fa fa-filter"></i>
+          <span>筛选</span>
+        </button>
+        <button class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2">
+          <i class="fa fa-download"></i>
+          <span>导出</span>
+        </button>
+        <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2 shadow-sm hover:shadow">
+          <i class="fa fa-plus"></i>
+          <span>新建合同</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 数据概览卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">合同总数</p>
+            <h3 class="text-2xl font-bold mt-1">248</h3>
+            <p class="text-success text-sm mt-2 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 12.5% <span class="text-gray-500 ml-1">较上月</span>
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <i class="fa fa-file-text-o text-xl"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">待转订单合同</p>
+            <h3 class="text-2xl font-bold mt-1">36</h3>
+            <p class="text-danger text-sm mt-2 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 8.2% <span class="text-gray-500 ml-1">较上月</span>
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
+            <i class="fa fa-clock-o text-xl"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">已转订单数</p>
+            <h3 class="text-2xl font-bold mt-1">212</h3>
+            <p class="text-success text-sm mt-2 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 18.3% <span class="text-gray-500 ml-1">较上月</span>
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-success/10 flex items-center justify-center text-success">
+            <i class="fa fa-check-circle-o text-xl"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">订单总金额</p>
+            <h3 class="text-2xl font-bold mt-1">¥1,286,450</h3>
+            <p class="text-success text-sm mt-2 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 23.7% <span class="text-gray-500 ml-1">较上月</span>
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+            <i class="fa fa-rmb text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 流程图表和最近数据 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 lg:col-span-2">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-semibold text-lg">合同转订单流程</h3>
+          <div class="flex space-x-2">
+            <button class="text-sm text-gray-500 hover:text-primary transition-colors">今日</button>
+            <button class="text-sm text-primary font-medium">本周</button>
+            <button class="text-sm text-gray-500 hover:text-primary transition-colors">本月</button>
+          </div>
+        </div>
+        <div class="h-80">
+          <canvas id="flowChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-semibold text-lg">待处理任务</h3>
+          <a href="#" class="text-primary text-sm hover:underline">查看全部</a>
+        </div>
+        <div class="space-y-4 max-h-80 overflow-y-auto scrollbar-hide">
+          <div class="p-3 bg-light rounded-lg flex items-center">
+            <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+              <i class="fa fa-file-text-o"></i>
+            </div>
+            <div class="flex-grow">
+              <p class="font-medium">合同 #HT-20250618 待审核</p>
+              <p class="text-gray-500 text-sm">由销售部 张三 创建</p>
+            </div>
+            <span class="text-xs px-2 py-1 bg-warning/10 text-warning rounded-full">待审核</span>
+          </div>
+          
+          <div class="p-3 bg-light rounded-lg flex items-center">
+            <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+              <i class="fa fa-exchange"></i>
+            </div>
+            <div class="flex-grow">
+              <p class="font-medium">合同 #HT-20250615 待转订单</p>
+              <p class="text-gray-500 text-sm">由销售部 李四 创建</p>
+            </div>
+            <span class="text-xs px-2 py-1 bg-warning/10 text-warning rounded-full">待处理</span>
+          </div>
+          
+          <div class="p-3 bg-light rounded-lg flex items-center">
+            <div class="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center text-success mr-3">
+              <i class="fa fa-check-circle-o"></i>
+            </div>
+            <div class="flex-grow">
+              <p class="font-medium">订单 #DD-20250620 已发货</p>
+              <p class="text-gray-500 text-sm">由物流部 王五 处理</p>
+            </div>
+            <span class="text-xs px-2 py-1 bg-success/10 text-success rounded-full">已完成</span>
+          </div>
+          
+          <div class="p-3 bg-light rounded-lg flex items-center">
+            <div class="h-10 w-10 rounded-full bg-danger/10 flex items-center justify-center text-danger mr-3">
+              <i class="fa fa-exclamation-circle"></i>
+            </div>
+            <div class="flex-grow">
+              <p class="font-medium">订单 #DD-20250612 需补货</p>
+              <p class="text-gray-500 text-sm">由采购部 赵六 跟进</p>
+            </div>
+            <span class="text-xs px-2 py-1 bg-danger/10 text-danger rounded-full">需处理</span>
+          </div>
+          
+          <div class="p-3 bg-light rounded-lg flex items-center">
+            <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+              <i class="fa fa-file-text-o"></i>
+            </div>
+            <div class="flex-grow">
+              <p class="font-medium">合同 #HT-20250608 待确认</p>
+              <p class="text-gray-500 text-sm">由销售部 孙七 创建</p>
+            </div>
+            <span class="text-xs px-2 py-1 bg-warning/10 text-warning rounded-full">待确认</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 合同转订单流程步骤 -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 mb-8">
+      <h3 class="font-semibold text-lg mb-6">合同转订单流程</h3>
+      
+      <div class="relative">
+        <!-- 流程线 -->
+        <div class="absolute left-6 top-6 bottom-0 w-0.5 bg-gray-200"></div>
+        
+        <!-- 流程步骤 -->
+        <div class="space-y-8">
+          <div class="flex">
+            <div class="relative z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+              <i class="fa fa-file-text-o"></i>
+            </div>
+            <div class="ml-6">
+              <h4 class="font-medium text-lg">1. 合同创建</h4>
+              <p class="text-gray-600 mt-1">销售部门创建合同并提交审核</p>
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">必填信息</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>客户信息</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>产品明细</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>价格条款</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">审批流程</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>销售经理审核</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>财务部审核</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>法务部审核</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">平均处理时间</p>
+                  <p class="mt-2 text-lg font-medium">1-2个工作日</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex">
+            <div class="relative z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+              <i class="fa fa-check-circle-o"></i>
+            </div>
+            <div class="ml-6">
+              <h4 class="font-medium text-lg">2. 合同审核</h4>
+              <p class="text-gray-600 mt-1">各部门对合同内容进行审核确认</p>
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">审核要点</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>条款合规性</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>价格合理性</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>交货期可行性</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">可能状态</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-check-circle text-success mr-2"></i>
+                      <span>审核通过</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-exclamation-circle text-warning mr-2"></i>
+                      <span>需修改</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-times-circle text-danger mr-2"></i>
+                      <span>审核拒绝</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">平均处理时间</p>
+                  <p class="mt-2 text-lg font-medium">2-3个工作日</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex">
+            <div class="relative z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+              <i class="fa fa-exchange"></i>
+            </div>
+            <div class="ml-6">
+              <h4 class="font-medium text-lg">3. 合同转订单</h4>
+              <p class="text-gray-600 mt-1">将已审核通过的合同转换为订单</p>
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">转换规则</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>自动生成订单编号</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>继承合同条款</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check text-success mr-2"></i>
+                      <span>关联原合同编号</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">操作方式</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-mouse-pointer text-primary mr-2"></i>
+                      <span>一键转换</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-edit text-primary mr-2"></i>
+                      <span>手动调整</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">操作权限</p>
+                  <p class="mt-2 text-sm">销售经理及以上级别</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex">
+            <div class="relative z-10 h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg">
+              <i class="fa fa-cogs"></i>
+            </div>
+            <div class="ml-6">
+              <h4 class="font-medium text-lg">4. 订单执行</h4>
+              <p class="text-gray-600 mt-1">订单进入执行阶段，安排生产、采购、物流等</p>
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">执行部门</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-industry text-primary mr-2"></i>
+                      <span>生产部</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-truck text-primary mr-2"></i>
+                      <span>物流部</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-archive text-primary mr-2"></i>
+                      <span>仓库</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">订单状态</p>
+                  <ul class="mt-2 text-sm space-y-1">
+                    <li class="flex items-center">
+                      <i class="fa fa-clock-o text-warning mr-2"></i>
+                      <span>处理中</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-cubes text-primary mr-2"></i>
+                      <span>生产中</span>
+                    </li>
+                    <li class="flex items-center">
+                      <i class="fa fa-check-circle text-success mr-2"></i>
+                      <span>已完成</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-light rounded-lg p-3">
+                  <p class="text-sm text-gray-500">平均周期</p>
+                  <p class="mt-2 text-lg font-medium">5-15个工作日</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 合同列表 -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="font-semibold text-lg">合同列表</h3>
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <select class="appearance-none bg-light border-0 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+              <option>全部状态</option>
+              <option>待审核</option>
+              <option>已审核</option>
+              <option>已转订单</option>
+              <option>已完成</option>
+              <option>已取消</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+              <i class="fa fa-chevron-down text-xs"></i>
+            </div>
+          </div>
+          <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow">
+            <i class="fa fa-plus mr-1"></i> 新建合同
+          </button>
+        </div>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">合同编号</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户名称</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建日期</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">HT-20250626-001</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">ABC科技有限公司</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">2025-06-26</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">¥89,500.00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success/10 text-success">已转订单</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="flex space-x-2">
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-900 transition-colors">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button class="text-danger hover:text-danger/80 transition-colors">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">HT-20250625-002</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">XYZ电子有限公司</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">2025-06-25</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">¥156,800.00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-warning/10 text-warning">待审核</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="flex space-x-2">
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-900 transition-colors">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-arrow-right"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">HT-20250624-003</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">123贸易有限公司</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">2025-06-24</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">¥234,200.00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">已审核</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="flex space-x-2">
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-900 transition-colors">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button class="text-success hover:text-success/80 transition-colors">
+                    <i class="fa fa-exchange"></i> 转订单
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">HT-20250623-004</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">星辰科技有限公司</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">2025-06-23</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">¥78,650.00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success/10 text-success">已转订单</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="flex space-x-2">
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-900 transition-colors">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button class="text-danger hover:text-danger/80 transition-colors">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">HT-20250622-005</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">明日软件有限公司</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">2025-06-22</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">¥124,300.00</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-danger/10 text-danger">已取消</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="flex space-x-2">
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="text-gray-600 hover:text-gray-900 transition-colors">
+                    <i class="fa fa-edit"></i>
+                  </button>
+                  <button class="text-primary hover:text-primary/80 transition-colors">
+                    <i class="fa fa-refresh"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- 分页 -->
+      <div class="flex justify-between items-center mt-6">
+        <div class="text-sm text-gray-500">
+          显示 <span class="font-medium">1</span> 到 <span class="font-medium">5</span> 条，共 <span class="font-medium">248</span> 条记录
+        </div>
+        <div class="flex space-x-1">
+          <button class="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">上一页</button>
+          <button class="px-3 py-1 rounded-md border border-primary bg-primary text-sm font-medium text-white">1</button>
+          <button class="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">2</button>
+          <button class="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">3</button>
+          <button class="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">4</button>
+          <button class="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">5</button>
+          <button class="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">下一页</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-gray-200 py-6">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+        <div class="flex items-center space-x-2 mb-4 md:mb-0">
+          <i class="fa fa-file-text-o text-primary text-xl"></i>
+          <span class="font-medium text-gray-800">合同转下单流程系统</span>
+        </div>
+        
+        <div class="flex flex-wrap justify-center space-x-6 text-sm text-gray-500">
+          <a href="#" class="hover:text-primary transition-colors">关于我们</a>
+          <a href="#" class="hover:text-primary transition-colors">使用帮助</a>
+          <a href="#" class="hover:text-primary transition-colors">联系我们</a>
+          <a href="#" class="hover:text-primary transition-colors">隐私政策</a>
+        </div>
+      </div>
+      
+      <div class="mt-6 text-center text-sm text-gray-500">
+        <p>© 2025 合同转下单流程系统 版权所有</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 初始化流程图表
+    document.addEventListener('DOMContentLoaded', function() {
+      const ctx = document.getElementById('flowChart').getContext('2d');
+      
+      const flowChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+          datasets: [
+            {
+              label: '合同创建',
+              data: [12, 19, 15, 20, 18, 14, 16],
+              borderColor: '#165DFF',
+              backgroundColor: 'rgba(22, 93, 255, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: '合同审核',
+              data: [8, 12, 10, 15, 13, 9, 11],
+              borderColor: '#0FC6C2',
+              backgroundColor: 'rgba(15, 198, 194, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: '转订单',
+              data: [5, 8, 10, 12, 9, 7, 8],
+              borderColor: '#00B42A',
+              backgroundColor: 'rgba(0, 180, 42, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                drawBorder: false
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+      
+      // 添加动画效果
+      const cards = document.querySelectorAll('.card-hover');
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          this.classList.add('shadow-md');
+        });
+        card.addEventListener('mouseleave', function() {
+          this.classList.remove('shadow-md');
+        });
+      });
+    });
+  </script>
+</body>
+</html>    
